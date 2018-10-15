@@ -76,7 +76,11 @@ export default class OrganizationDiscover extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    const {queryBuilder, location: {search}, savedQuery} = nextProps;
+    const {
+      queryBuilder,
+      location: {search},
+      savedQuery,
+    } = nextProps;
     const currentSearch = this.props.location.search;
     const {resultManager} = this.state;
 
@@ -372,6 +376,7 @@ export default class OrganizationDiscover extends React.Component {
                 organization={organization}
                 savedQuery={savedQuery}
                 queryBuilder={queryBuilder}
+                resultManager={resultManager}
               />
             )}
             {!shouldDisplayResult && <Intro updateQuery={this.updateFields} />}

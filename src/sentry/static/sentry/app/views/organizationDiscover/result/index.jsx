@@ -9,7 +9,6 @@ import {t, tct} from 'app/locale';
 import Link from 'app/components/link';
 import BarChart from 'app/components/charts/barChart';
 import LineChart from 'app/components/charts/lineChart';
-import Pagination from 'app/components/pagination';
 import space from 'app/styles/space';
 
 import {addSuccessMessage, addErrorMessage} from 'app/actionCreators/indicator';
@@ -33,6 +32,7 @@ export default class Result extends React.Component {
     data: PropTypes.object.isRequired,
     queryBuilder: PropTypes.object.isRequired,
     savedQuery: SentryTypes.DiscoverSavedQuery, // Provided if it's a saved search
+    resultManager: PropTypes.object,
   };
 
   constructor() {
@@ -205,8 +205,22 @@ export default class Result extends React.Component {
     );
   }
 
+  getNextPage(previous = false) {
+    const {resultManager} = this.props;
+    resultManager
+      .fetchNextPage(previous)
+      .then(data => {
+        this.setState({data});
+      })
+      .catch(err => {
+        const message = (err && err.message) || t('An error occurred');
+        addErrorMessage(message);
+      })
+    ;
+  }
+
   render() {
-    const {data: {baseQuery, byDayQuery, pageLinks}, savedQuery} = this.props;
+    const {data: {baseQuery, byDayQuery}, savedQuery} = this.props;
 
     const {view} = this.state;
 
@@ -281,7 +295,24 @@ export default class Result extends React.Component {
             {this.renderNote()}
           </ChartWrapper>
         )}
-        <Pagination pageLinks={pageLinks} />
+        <div className="stream-pagination clearfix">
+          <div className="btn-group pull-right">
+            <a className="btn btn-default btn-sm prev"
+               onClick={() => {
+                 this.getNextPage(true);
+               }}
+            >
+              <span title={t('Previous')} className="icon-arrow-left" />
+            </a>
+            <a className="btn btn-default btn-sm next"
+               onClick={() => {
+                 this.getNextPage();
+               }}
+            >
+              <span title={t('Next')} className="icon-arrow-right" />
+            </a>
+          </div>
+        </div>
         {this.renderSummary()}
       </Box>
     );

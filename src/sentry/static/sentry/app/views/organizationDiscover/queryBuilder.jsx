@@ -164,9 +164,14 @@ export default function createQueryBuilder(initial = {}, organization) {
    * @param {Object} [data] Optional field to provide data to fetch
    * @returns {Promise<Object|Error>}
    */
-  function fetch(data) {
+  function fetch(data, newPage = false) {
     const api = new Client();
-    const endpoint = `/organizations/${organization.slug}/discover/query/`;
+
+    const endpoint = newPage
+      ? `/organizations/${organization.slug}/discover/query/${
+        newPage.split('/').slice(-1)[0]
+        }`
+      : `/organizations/${organization.slug}/discover/query/`;
 
     data = data || getExternal();
 

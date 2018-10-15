@@ -16,7 +16,7 @@ from sentry.utils.dates import (
 from sentry.api.serializers.rest_framework import ListField
 from sentry.api.bases.organization import OrganizationPermission
 from sentry.api.bases import OrganizationEndpoint
-from sentry.api.paginator import SnubaOffsetPaginator
+from sentry.api.paginator import GenericOffsetPaginator
 from sentry.models import Project, ProjectStatus, OrganizationMember, OrganizationMemberTeam
 from sentry.utils import snuba
 from sentry import roles
@@ -187,8 +187,8 @@ class OrganizationDiscoverQueryEndpoint(OrganizationEndpoint):
 
         return self.paginate(
             request=request,
-            on_results=lambda results:results,
-            paginator=SnubaOffsetPaginator(data_fn=data_fn),
+            on_results=lambda results: results,
+            paginator=GenericOffsetPaginator(data_fn=data_fn),
             # default_per_page=limit  -- to add limit to per page
         )
 

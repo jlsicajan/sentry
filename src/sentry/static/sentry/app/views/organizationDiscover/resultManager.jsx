@@ -4,9 +4,11 @@
  * This function is responsible for fetching and storing result data for
  * result tables and visualizations.
  */
+import parseLinkHeader from 'app/utils/parseLinkHeader';
+
 export default function createResultManager(queryBuilder) {
   const data = {
-    baseQuery: {query: null, data: null},
+    baseQuery: {query: null, data: null, next: null, previous: null},
     byDayQuery: {query: null, data: null},
   };
 
@@ -15,10 +17,39 @@ export default function createResultManager(queryBuilder) {
     fetchAll,
     reset,
     shouldDisplayResult,
+    fetchNextPage,
   };
 
+  function fetchNextPage(previous = false){
+    const query = queryBuilder.getExternal();
+    const baseQuery = queryBuilder.getQueryByType(query, 'baseQuery');
+
+    let results, href;
+    if (previous) {
+      results = data.baseQuery.previous.results;
+      href = data.baseQuery.previous.href;
+    } else if (!previous) {
+      results = data.baseQuery.next.results;
+      href = data.baseQuery.next.href;
+    }
+
+    if (results) {
+      return queryBuilder.fetch(baseQuery, href).then(resp => {
+        data.baseQuery.query = query;
+        data.baseQuery.data = resp;
+        if(resp.pageLinks){
+          const links = parseLinkHeader(resp.pageLinks);
+          data.baseQuery.next = links.next;
+          data.baseQuery.previous = links.previous;
+        }
+        return data;
+      });
+    }
+    return false;
+  }
+
   /**
-   * Returns data for all relevant visuzlizations.
+   * Returns data for all relevant visualizations.
    *
    * @returns {Promise<Object>}
    */
@@ -51,14 +82,15 @@ export default function createResultManager(queryBuilder) {
       data.baseQuery.query = query;
       data.baseQuery.data = resp[0];
       if (resp[0].pageLinks) {
-        data.pageLinks = resp[0].pageLinks;
+        const links = parseLinkHeader(resp[0].pageLinks);
+        data.baseQuery.next = links.next;
+        data.baseQuery.previous = links.previous;
       }
 
       if (hasAggregations) {
         data.byDayQuery.query = byDayQuery;
         data.byDayQuery.data = resp[1];
       }
-
       return data;
     });
   }
